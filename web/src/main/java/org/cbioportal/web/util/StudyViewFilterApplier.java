@@ -81,7 +81,8 @@ public class StudyViewFilterApplier {
     };
 
     public List<SampleIdentifier> apply(StudyViewFilter studyViewFilter) {
-        return (instance == null ? this : instance).cachedApply(studyViewFilter);
+        return instance.cachedApply(studyViewFilter);
+        
     }
     
     @Cacheable(
