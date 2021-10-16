@@ -222,3 +222,15 @@ function openSoicalAuthWindow() {
         </div>
 
     </header>
+
+<script>
+function postLoadForMskCIS() {
+try {
+	var userDiv = document.getElementsByClassName('username');
+	if (userDiv.length===1) {
+		userDiv[0].remove();
+	}
+} catch(err) {
+}
+}
+</script>
