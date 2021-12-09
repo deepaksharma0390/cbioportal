@@ -93,4 +93,21 @@ public interface AlterationCountsMapper {
                                                     boolean includeUnknownTier);
 
     List<MolecularProfileCaseIdentifier> getMolecularProfileCaseInternalIdentifier(List<MolecularProfileCaseIdentifier> molecularProfileSampleIdentifiers, String caseType);
+
+    List<String> getTop10MutatedGenes(List<MolecularProfileCaseIdentifier> mutationMolecularProfileCaseIdentifiers,
+                                      List<MolecularProfileCaseIdentifier> cnaMolecularProfileCaseIdentifiers,
+                                      List<MolecularProfileCaseIdentifier> structuralVariantMolecularProfileCaseIdentifiers,
+                                      Select<Integer> entrezGeneIds,
+                                      Select<String> mutationTypes,
+                                      Select<Short> cnaTypes,
+                                      QueryElement searchFusions,
+                                      boolean includeDriver,
+                                      boolean includeVUS,
+                                      boolean includeUnknownOncogenicity,
+                                      Select<String> selectedTiers,
+                                      boolean includeUnknownTier,
+                                      boolean includeGermline,
+                                      boolean includeSomatic,
+                                      boolean includeUnknownStatus);
+
 }

@@ -93,6 +93,22 @@ public class StudyViewServiceImpl implements StudyViewService {
     }
 
     @Override
+    public List<String> getTop10MutatedGenes(List<String> studyIds,
+                                             List<String> sampleIds,
+                                             AlterationFilter alterationFilter)
+        throws StudyNotFoundException {
+        List<MolecularProfileCaseIdentifier> caseIdentifiers =
+                molecularProfileService.getFirstMutationProfileCaseIdentifiers(studyIds, sampleIds);
+        List<String> alterationGeneByFrequency = alterationCountService.getTop10MutatedGenes(
+                caseIdentifiers,
+                Select.all(),
+                true,
+                false,
+                alterationFilter).getFirst();
+        return alterationGeneByFrequency;
+    }
+
+    @Override
     public List<AlterationCountByGene> getStructuralVariantAlterationCountByGenes(List<String> studyIds,
                                                                                   List<String> sampleIds,
                                                                                   AlterationFilter alterationFilter)

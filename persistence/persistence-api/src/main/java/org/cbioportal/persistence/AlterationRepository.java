@@ -31,5 +31,11 @@ public interface AlterationRepository {
     List<CopyNumberCountByGene> getPatientCnaCounts(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
                                                     Select<Integer> entrezGeneIds,
                                                     AlterationFilter alterationFilter);
-    
+
+    @Cacheable(cacheResolver = "generalRepositoryCacheResolver", condition = "@cacheEnabledConfig.getEnabled()")
+    List<String> getTop10MutatedGenes(Set<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                      Select<Integer> entrezGeneIds,
+                                      QueryElement searchFusions,
+                                      AlterationFilter alterationFilter);
+
 }

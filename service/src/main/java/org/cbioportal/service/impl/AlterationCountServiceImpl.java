@@ -57,6 +57,24 @@ public class AlterationCountServiceImpl implements AlterationCountService {
     }
 
     @Override
+    public Pair<List<String>, Long> getTop10MutatedGenesFrequency(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                                                  Select<Integer> entrezGeneIds,
+                                                                  boolean includeFrequency,
+                                                                  boolean includeMissingAlterationsFromGenePanel,
+                                                                  QueryElement searchFusions,
+                                                                  AlterationFilter alterationFilter) {
+
+        Function<List<MolecularProfileCaseIdentifier>, List<String>> dataFetcher = profileCaseIdentifiers ->
+            alterationRepository.getTop10MutatedGenes(new TreeSet<>(profileCaseIdentifiers), entrezGeneIds, searchFusions, alterationFilter);
+
+        return getAlterationFrequency(
+            molecularProfileCaseIdentifiers,
+            includeFrequency,
+            dataFetcher);
+    }
+
+
+    @Override
     public Pair<List<AlterationCountByGene>, Long> getPatientAlterationCounts(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
                                                                               Select<Integer> entrezGeneIds,
                                                                               boolean includeFrequency,
@@ -78,6 +96,21 @@ public class AlterationCountServiceImpl implements AlterationCountService {
             dataFetcher,
             includeFrequencyFunction,
             keyGenerator);
+    }
+
+    @Override
+    public Pair<List<String>, Long> getTop10MutatedGenes(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                                         Select<Integer> entrezGeneIds,
+                                                         boolean includeFrequency,
+                                                         boolean includeMissingAlterationsFromGenePanel,
+                                                         AlterationFilter alterationFilter) {
+        return getTop10MutatedGenesFrequency(molecularProfileCaseIdentifiers,
+            entrezGeneIds,
+            includeFrequency,
+            includeMissingAlterationsFromGenePanel,
+            QueryElement.INACTIVE,
+            alterationFilter
+        );
     }
 
     @Override
@@ -279,4 +312,43 @@ public class AlterationCountServiceImpl implements AlterationCountService {
         return new Pair<>(alterationCountByGenes, profiledCasesCount.get());
     }
 
+    private <S extends String> Pair<List<S>, Long> getAlterationFrequency(
+            List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+            boolean includeFrequency,
+            Function<List<MolecularProfileCaseIdentifier>, List<S>> dataFetcher) {
+
+        List<S> alterationGeneByFrequency;
+        AtomicReference<Long> profiledCasesCount = new AtomicReference<>(0L);
+        if (molecularProfileCaseIdentifiers.isEmpty()) {
+            alterationGeneByFrequency = Collections.emptyList();
+        } else {
+            Set<MolecularProfileCaseIdentifier> updatedProfileCaseIdentifiers = molecularProfileCaseIdentifiers
+                    .stream()
+                    .peek(molecularProfileCaseIdentifier -> molecularProfileCaseIdentifier.setMolecularProfileId(molecularProfileUtil.replaceFusionProfileWithMutationProfile(molecularProfileCaseIdentifier.getMolecularProfileId())))
+                    .collect(Collectors.toSet());
+
+            Set<String> molecularProfileIds = updatedProfileCaseIdentifiers
+                    .stream()
+                    .map(MolecularProfileCaseIdentifier::getMolecularProfileId)
+                    .collect(Collectors.toSet());
+            Map<String, String> molecularProfileIdStudyIdMap = molecularProfileRepository
+                    .getMolecularProfiles(molecularProfileIds, "SUMMARY")
+                    .stream()
+                    .collect(Collectors.toMap(MolecularProfile::getStableId, MolecularProfile::getCancerStudyIdentifier));
+
+            List<S> totalResult = new ArrayList<>();
+
+            updatedProfileCaseIdentifiers
+                    .stream()
+                    .collect(Collectors
+                        .groupingBy(identifier -> molecularProfileIdStudyIdMap.get(identifier.getMolecularProfileId())))
+                    .values()
+                    .forEach(studyMolecularProfileCaseIdentifiers -> {
+                            List<S> studyAlterationGenesByFrequency = dataFetcher.apply(studyMolecularProfileCaseIdentifiers);
+                        totalResult.addAll(studyAlterationGenesByFrequency);
+                    });
+            alterationGeneByFrequency = new ArrayList<>(totalResult);
+        }
+        return new Pair<>(alterationGeneByFrequency, profiledCasesCount.get());
+    }
 }

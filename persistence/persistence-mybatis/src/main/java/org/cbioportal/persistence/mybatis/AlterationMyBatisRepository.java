@@ -90,6 +90,69 @@ public class AlterationMyBatisRepository implements AlterationRepository {
     }
 
     @Override
+    public List<String> getTop10MutatedGenes(Set<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                             Select<Integer> entrezGeneIds,
+                                             QueryElement searchFusions,
+                                             AlterationFilter alterationFilter) {
+
+        if (!alterationFilter.getMutationTypeSelect().hasAll() && searchFusions != QueryElement.PASS)
+            throw new IllegalArgumentException("Filtering for mutations vs. fusions and specifying mutation types" +
+                "simultaneously is not permitted.");
+
+        if ((alterationFilter.getMutationTypeSelect().hasNone() && alterationFilter.getCNAEventTypeSelect().hasNone())
+            || (molecularProfileCaseIdentifiers == null || molecularProfileCaseIdentifiers.isEmpty())
+            || allAlterationsExcludedDriverAnnotation(alterationFilter)
+            || allAlterationsExcludedMutationStatus(alterationFilter)
+            || allAlterationsExcludedDriverTierAnnotation(alterationFilter)) {
+            return Collections.emptyList();
+        }
+
+        Set<String> molecularProfileIds = molecularProfileCaseIdentifiers.stream()
+                .map(MolecularProfileCaseIdentifier::getMolecularProfileId)
+                .collect(Collectors.toSet());
+
+        Map<String, MolecularAlterationType> profileTypeByProfileId = molecularProfileRepository
+            .getMolecularProfiles(molecularProfileIds, "SUMMARY")
+            .stream()
+            .collect(Collectors.toMap(datum -> datum.getMolecularProfileId().toString(), MolecularProfile::getMolecularAlterationType));
+
+        Map<MolecularAlterationType, List<MolecularProfileCaseIdentifier>> groupedIdentifiersByProfileType =
+            alterationCountsMapper.getMolecularProfileCaseInternalIdentifier(new ArrayList<>(molecularProfileCaseIdentifiers), "SAMPLE_ID")
+            .stream()
+            .collect(Collectors.groupingBy(e -> profileTypeByProfileId.getOrDefault(e.getMolecularProfileId(), null)));
+
+        // TODO: Remove once fusions are removed from mutation table
+        // if fusions were imported as a "mutations" profile then replace STRUCTURAL_VARIANT in
+        // groupedIdentifiersByProfileType map with MUTATION_EXTENDED
+        for (MolecularProfile profile : molecularProfileRepository.getMolecularProfiles(molecularProfileIds, "SUMMARY")) {
+            if (profile.getStableId().endsWith("mutations") && profile.getDatatype().equals("FUSION") &&
+                    groupedIdentifiersByProfileType.get(MolecularAlterationType.STRUCTURAL_VARIANT) != null) {
+                groupedIdentifiersByProfileType.put(MolecularAlterationType.MUTATION_EXTENDED,
+                        groupedIdentifiersByProfileType.get(MolecularAlterationType.STRUCTURAL_VARIANT));
+                groupedIdentifiersByProfileType.remove(MolecularAlterationType.STRUCTURAL_VARIANT);
+                break;
+            }
+        }
+
+        return alterationCountsMapper.getTop10MutatedGenes(
+            groupedIdentifiersByProfileType.get(MolecularAlterationType.MUTATION_EXTENDED),
+            groupedIdentifiersByProfileType.get(MolecularAlterationType.COPY_NUMBER_ALTERATION),
+            groupedIdentifiersByProfileType.get(MolecularAlterationType.STRUCTURAL_VARIANT),
+            entrezGeneIds,
+            createMutationTypeList(alterationFilter),
+            createCnaTypeList(alterationFilter),
+            searchFusions,
+            alterationFilter.getIncludeDriver(),
+            alterationFilter.getIncludeVUS(),
+            alterationFilter.getIncludeUnknownOncogenicity(),
+            alterationFilter.getSelectedTiers(),
+            alterationFilter.getIncludeUnknownTier(),
+            alterationFilter.getIncludeGermline(),
+            alterationFilter.getIncludeSomatic(),
+            alterationFilter.getIncludeUnknownStatus());
+    }
+
+    @Override
     public List<AlterationCountByGene> getPatientAlterationCounts(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
                                                                   Select<Integer> entrezGeneIds,
                                                                   QueryElement searchFusions,

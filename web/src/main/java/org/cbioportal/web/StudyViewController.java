@@ -205,6 +205,42 @@ public class StudyViewController {
     }
 
     @PreAuthorize("hasPermission(#involvedCancerStudies, 'Collection<CancerStudyId>', T(org.cbioportal.utils.security.AccessLevel).READ)")
+    @RequestMapping(value = "/top-mutated-genes/fetch", method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation("Fetch mutated genes by study view filter")
+    public ResponseEntity<List<String>> fetchTop10MutatedGenes(
+            @ApiParam(required = true, value = "Study view filter")
+            @Valid @RequestBody(required = false) StudyViewFilter studyViewFilter,
+            @ApiIgnore // prevent reference to this attribute in the swagger-ui interface
+            @RequestAttribute(required = false, value = "involvedCancerStudies") Collection<String> involvedCancerStudies,
+            @ApiIgnore // prevent reference to this attribute in the swagger-ui interface. this attribute is needed for the @PreAuthorize tag above.
+            @Valid @RequestAttribute(required = false, value = "interceptedStudyViewFilter") StudyViewFilter interceptedStudyViewFilter
+            ) throws StudyNotFoundException {
+        boolean singleStudyUnfiltered = studyViewFilterUtil.isSingleStudyUnfiltered(interceptedStudyViewFilter);
+        List<String> top10MutatedGenes = instance.cachedFetchTop10MutatedGenes(interceptedStudyViewFilter, singleStudyUnfiltered);
+        return new ResponseEntity<>(top10MutatedGenes, HttpStatus.OK);
+    }
+
+    @Cacheable(
+        cacheResolver = "staticRepositoryCacheOneResolver",
+        condition = "@cacheEnabledConfig.getEnabled() && #singleStudyUnfiltered"
+    )
+    public List<String> cachedFetchTop10MutatedGenes(
+        StudyViewFilter interceptedStudyViewFilter, boolean singleStudyUnfiltered
+    ) throws StudyNotFoundException {
+        AlterationFilter annotationFilters = interceptedStudyViewFilter.getAlterationFilter();
+        List<SampleIdentifier> sampleIdentifiers = studyViewFilterApplier.apply(interceptedStudyViewFilter);
+        List<String> top10MutatedGenes = new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(sampleIdentifiers)) {
+            List<String> studyIds = new ArrayList<>();
+            List<String> sampleIds = new ArrayList<>();
+            studyViewFilterUtil.extractStudyAndSampleIds(sampleIdentifiers, studyIds, sampleIds);
+            top10MutatedGenes = studyViewService.getTop10MutatedGenes(studyIds, sampleIds, annotationFilters);
+        }
+        return top10MutatedGenes;
+    }
+
+    @PreAuthorize("hasPermission(#involvedCancerStudies, 'Collection<CancerStudyId>', T(org.cbioportal.utils.security.AccessLevel).READ)")
     @RequestMapping(value = "/structuralvariant-genes/fetch", method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation("Fetch structural variant genes by study view filter")
