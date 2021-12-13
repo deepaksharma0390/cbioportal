@@ -38,4 +38,10 @@ public interface AlterationRepository {
                                       QueryElement searchFusions,
                                       AlterationFilter alterationFilter);
 
+    @Cacheable(cacheResolver = "generalRepositoryCacheResolver", condition = "@cacheEnabledConfig.getEnabled()")
+    List<AlterationCountByProtein> getSampleAlterationCountsByProtein(Set<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                                                      Select<Integer> entrezGeneIds,
+                                                                      QueryElement searchFusions,
+                                                                      AlterationFilter alterationFilter);
+
 }

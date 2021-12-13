@@ -73,17 +73,23 @@ public interface AlterationCountService {
                                                     boolean includeMissingAlterationsFromGenePanel,
                                                     AlterationFilter alterationFilter);
 
-    Pair<List<String>, Long> getTop10MutatedGenes(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
-                                                  Select<Integer> entrezGeneIds,
-                                                  boolean includeFrequency,
-                                                  boolean includeMissingAlterationsFromGenePanel,
-                                                  AlterationFilter alterationFilter);
+    List<String> getTop10MutatedGenes(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                      Select<Integer> entrezGeneIds,
+                                      boolean includeFrequency,
+                                      boolean includeMissingAlterationsFromGenePanel,
+                                      AlterationFilter alterationFilter);
 
-    Pair<List<String>, Long> getTop10MutatedGenesFrequency(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
-                                                           Select<Integer> entrezGeneIds,
-                                                           boolean includeFrequency,
-                                                           boolean includeMissingAlterationsFromGenePanel,
-                                                           QueryElement searchFusions,
-                                                           AlterationFilter alterationFilter);
-    
+    List<String> getTop10MutatedGenesFrequency(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                               Select<Integer> entrezGeneIds,
+                                               boolean includeFrequency,
+                                               boolean includeMissingAlterationsFromGenePanel,
+                                               QueryElement searchFusions,
+                                               AlterationFilter alterationFilter);
+
+    List<AlterationCountByProtein> getSampleMutationCountsByProtein(List<MolecularProfileCaseIdentifier> molecularProfileCaseIdentifiers,
+                                                                   Select<Integer> entrezGeneIds,
+                                                                   boolean includeFrequency,
+                                                                   boolean includeMissingAlterationsFromGenePanel,
+                                                                   AlterationFilter alterationFilter);
+
 }

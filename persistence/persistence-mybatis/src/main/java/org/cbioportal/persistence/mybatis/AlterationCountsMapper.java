@@ -1,6 +1,7 @@
 package org.cbioportal.persistence.mybatis;
 
 import org.cbioportal.model.AlterationCountByGene;
+import org.cbioportal.model.AlterationCountByProtein;
 import org.cbioportal.model.CopyNumberCountByGene;
 import org.cbioportal.model.MolecularProfileCaseIdentifier;
 import org.cbioportal.model.QueryElement;
@@ -109,5 +110,21 @@ public interface AlterationCountsMapper {
                                       boolean includeGermline,
                                       boolean includeSomatic,
                                       boolean includeUnknownStatus);
+
+    List<AlterationCountByProtein> getSampleAlterationCountsByProtein(List<MolecularProfileCaseIdentifier> mutationMolecularProfileCaseIdentifiers,
+                                                                      List<MolecularProfileCaseIdentifier> cnaMolecularProfileCaseIdentifiers,
+                                                                      List<MolecularProfileCaseIdentifier> structuralVariantMolecularProfileCaseIdentifiers,
+                                                                      Select<Integer> entrezGeneIds,
+                                                                      Select<String> mutationTypes,
+                                                                      Select<Short> cnaTypes,
+                                                                      QueryElement searchFusions,
+                                                                      boolean includeDriver,
+                                                                      boolean includeVUS,
+                                                                      boolean includeUnknownOncogenicity,
+                                                                      Select<String> selectedTiers,
+                                                                      boolean includeUnknownTier,
+                                                                      boolean includeGermline,
+                                                                      boolean includeSomatic,
+                                                                      boolean includeUnknownStatus);
 
 }

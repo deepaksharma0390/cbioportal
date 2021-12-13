@@ -3,6 +3,7 @@ package org.cbioportal.service;
 import java.util.List;
 
 import org.cbioportal.model.AlterationCountByGene;
+import org.cbioportal.model.AlterationCountByProtein;
 import org.cbioportal.model.AlterationFilter;
 import org.cbioportal.model.CopyNumberCountByGene;
 import org.cbioportal.model.GenericAssayDataCountItem;
@@ -24,6 +25,9 @@ public interface StudyViewService {
     List<GenericAssayDataCountItem> fetchGenericAssayDataCounts(List<String> sampleIds, List<String> studyIds, List<String> stableIds, List<String> profileTypes);
 
     List<String> getTop10MutatedGenes(List<String> studyIds, List<String> sampleIds, AlterationFilter annotationFilter)
+        throws StudyNotFoundException;
+
+    List<AlterationCountByProtein> getMutationAlterationCountByProtein(List<String> studyIds, List<String> sampleIds, AlterationFilter annotationFilter)
         throws StudyNotFoundException;
 
 }
