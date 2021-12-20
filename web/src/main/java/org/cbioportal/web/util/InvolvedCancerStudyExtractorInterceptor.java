@@ -82,6 +82,8 @@ public class InvolvedCancerStudyExtractorInterceptor extends HandlerInterceptorA
     public static final String STUDY_VIEW_CNA_GENES = "/cna-genes/fetch";
     public static final String STUDY_VIEW_FILTERED_SAMPLES = "/filtered-samples/fetch";
     public static final String STUDY_VIEW_MUTATED_GENES = "/mutated-genes/fetch";
+    public static final String STUDY_VIEW_MUTATED_PROTEIN = "/mutated-protein/fetch";
+    public static final String STUDY_VIEW_TOP_MUTATED_GENES = "/top-mutated-genes/fetch";
     public static final String STUDY_VIEW_STRUCTURAL_VARIANT_GENES = "/structuralvariant-genes/fetch";
     public static final String STUDY_VIEW_SAMPLE_COUNTS = "/sample-counts/fetch";
     public static final String STUDY_VIEW_SAMPLE_LIST_COUNTS_PATH = "/sample-lists-counts/fetch";
@@ -133,7 +135,7 @@ public class InvolvedCancerStudyExtractorInterceptor extends HandlerInterceptorA
                 .contains(requestPathInfo)) {
             return extractAttributesFromClinicalDataCountFilter(request);
         } else if (Arrays.asList(STUDY_VIEW_CLINICAL_DATA_DENSITY_PATH, STUDY_VIEW_CNA_GENES,
-                STUDY_VIEW_FILTERED_SAMPLES, STUDY_VIEW_MUTATED_GENES, STUDY_VIEW_STRUCTURAL_VARIANT_GENES,
+                STUDY_VIEW_FILTERED_SAMPLES, STUDY_VIEW_MUTATED_GENES, STUDY_VIEW_MUTATED_PROTEIN, STUDY_VIEW_TOP_MUTATED_GENES, STUDY_VIEW_STRUCTURAL_VARIANT_GENES,
                 STUDY_VIEW_SAMPLE_COUNTS, STUDY_VIEW_SAMPLE_LIST_COUNTS_PATH,
                 TREATMENTS_PATIENT_PATH, TREATMENTS_SAMPLE_PATH, STUDY_VIEW_PROFILE_SAMPLE_COUNTS_PATH
         ).contains(requestPathInfo)) {
